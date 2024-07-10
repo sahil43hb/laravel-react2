@@ -1,20 +1,32 @@
 import React, { useState } from "react";
 import http from "../http";
 import { useNavigate } from "react-router-dom";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const Create = () => {
   const [value, setValue] = useState({});
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const handleChange = (e) => {
     const name = e.target.name;
     const value = e.target.value;
     setValue((prev) => ({ ...prev, [name]: value }));
   };
+
+  const addUserMutation = useMutation({
+    mutationFn: (user) =>
+      http.post("users", user).then((res) => console.log(res)),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      navigate("/home");
+    },
+  });
   const handleSubmit = (e) => {
     e.preventDefault();
-    http.post("users", value).then((res) => {
-      navigate("/home");
-    });
+    addUserMutation.mutate(value);
+    // http.post("users", value).then((res) => {
+    //   navigate("/home");
+    // });
   };
 
   return (
